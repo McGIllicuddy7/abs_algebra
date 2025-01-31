@@ -14,5 +14,5 @@ fn main() {
         average_counts += n;
     }
     println!("on average took: {} iterations", average_counts as f64/ (count as f64));
-    println!("{:#?}",Q::from(0.5));
+    println!("{:#?}",Q::from(1./3.));
 }
