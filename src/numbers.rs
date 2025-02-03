@@ -1,5 +1,6 @@
-use core::num;
+
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Rem};
+
 pub trait Identity{
     fn one()->Self;
 }
@@ -180,13 +181,14 @@ impl Q{
     pub fn from_f64_prof(value:f64)->(Self, u64){
         let sign = value<0.0;
         let v = (value.abs()- value.abs().floor()).abs();
-        let mut info=  (format!("{}",v).len()) as i32;
+        let info=  (format!("{}",v).len()) as i32;
         let ipart = Self{num:(value-v) as i64, denum:1};
        // println!("value: {value},ipart:{:#?}", ipart);
         let mut out = Self{num:1, denum:1};
         let mut diff = (f64::from(out) -v).abs();
         let mut iters =0;
         for j in i32::MAX-info..i32::MAX{
+            assert!(j>0);
             if diff == 0.0{
                 break;
             }
@@ -199,11 +201,12 @@ impl Q{
                 max = 1;
             }
             for i in min..max{
+                assert!(i>0);
                 iters += 1;
                 if (i-1) as f64/(j as f64)>v{
                     break;
                 }
-                let tmp = Self::new(i, j);
+                let tmp = Self::new_i64(i as i64, j as i64);
                 let d = (f64::from(tmp)-v).abs();
                 if d<diff{
                     diff = d;
@@ -213,9 +216,10 @@ impl Q{
         }
         out = Self::new_i64(out.num+ipart.num*out.denum, out.denum);
         out = if sign{
+            assert!(false);
             Self::new((out.num*-1) as i32, (out.denum) as i32)
         } else{
-            Self::new((out.num) as i32 , (out.denum) as i32)
+            Self::new_i64(out.num, out.denum)
         };
         (out,iters)
     }
