@@ -164,11 +164,17 @@ impl Q{
         Self { num: num/g, denum:denum/g } 
     }
     pub fn new(num:i32, denum:i32)->Self{
+        if num == 0{
+            return Self{num:0, denum:1};
+        }
         let g = gcd(num.abs(), denum);
         assert!(g>0);
         Self { num: (num/g)as i64, denum:(denum/g)as i64 }
     }
     pub fn new_i64(num:i64, denum:i64)->Self{
+        if num == 0{
+            return Self{num:0, denum:1};
+        }
         let g = gcd(num, denum);
         assert!(g>0);
         assert!(num>0);
@@ -181,13 +187,32 @@ impl Q{
     pub fn from_f64_prof(value:f64)->(Self, u64){
         let sign = value<0.0;
         let v = (value.abs()- value.abs().floor()).abs();
-        let info=  (format!("{}",v).len()) as i32;
+        let s = format!("{}",v);
+        let info=  (s.len()) as i32;
+        let mut iters =0;
+        if info >10{
+            iters = 2;
+            let base:i32 = value.abs().floor() as i32;
+            let mut second = 0;
+            let mut denum = 1;
+            let mut strs = s.split('.');
+            let _ = strs.next().expect("msg");
+            let s2 = strs.next();
+            if let Some(mut l) = s2{
+                if l.len()>9{
+                    l = &l[0..9];
+                }
+                denum = 10_i64.pow(l.len() as u32);
+                second = l.parse().expect("msg");
+            }
+            return (Q::new(base,1) +Q::new(second, denum as i32), iters);
+        }
         let ipart = Self{num:(value-v) as i64, denum:1};
        // println!("value: {value},ipart:{:#?}", ipart);
         let mut out = Self{num:1, denum:1};
         let mut diff = (f64::from(out) -v).abs();
-        let mut iters =0;
-        for j in i32::MAX-info..i32::MAX{
+ 
+        for j in info-1..info*info*info/2{
             assert!(j>0);
             if diff == 0.0{
                 break;
@@ -211,7 +236,10 @@ impl Q{
                 if d<diff{
                     diff = d;
                     out = tmp;
-                }
+                    if diff<0.0001{
+                        break;
+                    }
+                } 
             }
         }
         out = Self::new_i64(out.num+ipart.num*out.denum, out.denum);
@@ -227,6 +255,12 @@ impl Q{
 impl Add for Q{
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
+        if rhs.num == 0 {
+            return self;
+        }
+        if self.num == 0{
+            return rhs;
+        }
         assert!(self.denum>0 && self.num>0 && rhs.denum>0 && rhs.num>0);
         let out = Self::new_i64(self.num*rhs.denum+rhs.num*self.denum,rhs.denum*self.denum);
         out

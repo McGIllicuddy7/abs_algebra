@@ -22,9 +22,9 @@ fn main() {
         average_counts += n;
     }
     println!("on average took: {} iterations, {} delta", average_counts as f64/ (count as f64), dels/(count as f64));
-     let (q,_) = Q::from_f64_prof(9./100.);
+     let (q,_) = Q::from_f64_prof(5./32.);
      println!("q:{:#?}\nf:{}",q,f64::from(q));
-    let q1 = Q::new(1,2);
+    let q1 = Q::new(1,7);
     let q2 = Q::new(3,2);
     println!("q1:{:#?}, q2:{:#?}, q1+q2{:#?}", q1, q2, q1+q2);
 }
