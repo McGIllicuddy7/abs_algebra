@@ -1,14 +1,14 @@
 
-use std::f64::consts::{E, PI};
 
 
-use numbers::*;
-use q::*;
-
+pub use numbers::*;
+pub use q::*;
+pub use matrix::*;
 
 pub mod numbers;
 pub mod q;
+pub mod matrix;
 fn main() {
-    println!("{}", pow(2, 10));
-    println!("{}", Q::from(0.5.exp())-exp(Q::new(1,2)));
+    let m = Matrix::new([[2.0,0.0],[0.0,2.0]]);
+    println!("{}",m.inverse()*m);
 }

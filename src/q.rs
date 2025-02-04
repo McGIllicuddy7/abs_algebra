@@ -1,5 +1,5 @@
 use crate::numbers::*;
-use std::{f64::consts::E, ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign}};
+use std::{collections::HashSet, f64::consts::E, ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign}};
 #[derive(Debug,Clone, Copy)]
 pub struct Q{
     pub num:i64,
@@ -41,76 +41,8 @@ impl Q{
     pub fn inverse(&self)->Self{
         return Self::new_i64( self.denum,  self.num )
     }
-    pub fn from_f64_prof(value:f64)->(Self, u64){
-        let sign = value<0.0;
-        let v = (value.abs()- value.abs().floor()).abs();
-        let s = format!("{}",v);
-        let info=  (s.len()) as i32;
-        let mut iters =0;
-        if info >10{
-            iters = 2;
-            let base:i32 = value.abs().floor() as i32;
-            let mut second = 0;
-            let mut denum = 1;
-            let mut strs = s.split('.');
-            let _ = strs.next().expect("msg");
-            let s2 = strs.next();
-            if let Some(mut l) = s2{
-                if l.len()>9{
-                    l = &l[0..9];
-                }
-                denum = 10_i64.pow(l.len() as u32);
-                second = l.parse().expect("msg");
-            }
-            let sn = if sign{
-                -1
-            } else{
-                1
-            };
-            return (Q::new(sn*base,1) +Q::new(sn*second, denum as i32), iters);
-        }
-        let ipart = Self::new_i64((value-v) as i64, 1);
-       // println!("value: {value},ipart:{:#?}", ipart);
-        let mut out = Self::one();
-        let mut diff = (f64::from(out) -v).abs();
- 
-        for j in info-1..info*info*info/2{
-            assert!(j>0);
-            if diff == 0.0{
-                break;
-            }
-            let mut min = (v*(j as f64)-1.0).floor()as i32;
-            if min <= 0{
-                min = 1;
-            }
-            let mut  max =(v*(j as f64)+1.0).ceil()as i32; 
-            if max <= 0{
-                max = 1;
-            }
-            for i in min..max{
-                assert!(i>0);
-                iters += 1;
-                if (i-1) as f64/(j as f64)>v{
-                    break;
-                }
-                let tmp = Self::new_i64(i as i64, j as i64);
-                let d = (f64::from(tmp)-v).abs();
-                if d<diff{
-                    diff = d;
-                    out = tmp;
-                    if diff<0.0001{
-                        break;
-                    }
-                } 
-            }
-        }
-        out = Self::new_i64(out.num+ipart.num*out.denum, out.denum);
-        out = if sign{
-            Self::new((out.num*-1) as i32, (out.denum) as i32)
-        } else{
-            Self::new_i64(out.num, out.denum)
-        };
-        (out,iters)
+    pub fn as_f64(&self)->f64{
+        return f64::from(*self);
     }
 }
 impl Add for Q{
@@ -263,9 +195,19 @@ impl From<f64> for Q{
     fn from(value: f64) -> Self {
         let sign = value<0.0;
         let v = (value.abs()- value.abs().floor()).abs();
+        if (v)<0.0001{
+
+            return Self::new(value as i32, 1);
+        }
         let s = format!("{}",v);
-        let info=  (s.len()) as i32;
-        if info >10{
+        let info = {
+            let mut infoset = HashSet::new();
+            for i in s.chars(){
+                infoset.insert(i);
+            };
+            infoset.iter().len()
+        };
+        if info >7{
             let base:i32 = value.abs().floor() as i32;
             let mut second = 0;
             let mut denum = 1;
@@ -374,9 +316,15 @@ impl Exp for Q{
     fn exp(self)->Self {
         let n = self.num;
         let denum = self.denum;
-        let f = 1.0/(denum as f64);
+        let f = denum as f64;
         let g = E.powi(n as i32);
         let t = g.powf(1.0/f);
         Self::from(t)
+    }
+    fn cos(self)->Self {
+        Self::from(cos(self.as_f64()))
+    }
+    fn sin(self)->Self {
+        Self::from(sin(self.as_f64()))
     }
 }

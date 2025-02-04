@@ -1,11 +1,14 @@
 
-use std::{f64::consts::E, fmt::Debug, ops::{Add, AddAssign, Div, Mul, MulAssign, Rem}, process::Output};
+use std::{f64::consts::E, fmt::Debug, ops::{Add, AddAssign, Div, Mul, MulAssign, Rem, Sub, SubAssign}};
 
 pub trait Identity{
     fn one()->Self;
 }
-pub trait Ring: Add<Output = Self>+Mul<Output = Self>+AddAssign+MulAssign+Clone+PartialEq{
+pub trait Ring: Add<Output = Self>+Sub<Output= Self> + SubAssign+Mul<Output = Self>+AddAssign+MulAssign+Clone+PartialEq+Debug{
     fn zero()->Self;
+    fn derivitive()->Self{
+        Self::zero()
+    }
 }
 pub trait Field:Ring+Identity+Div<Output = Self>{
 
@@ -140,65 +143,139 @@ impl Field for f64{
 }
 pub trait Exp {
     fn exp(self)->Self;
+    fn cos(self)->Self;
+    fn sin(self)->Self;
 }
 impl Exp for f32{
     fn exp(self)->Self {
         self.exp()
+    }
+    fn cos(self)->Self {
+        self.cos()
+    }
+    fn sin(self)->Self {
+        self.sin()
     }
 }
 impl Exp for f64{
     fn exp(self)->Self {
         self.exp()
     }
+    fn cos(self)->Self {
+        self.cos()
+    }
+    fn sin(self)->Self {
+        self.sin()
+    }
 }
 impl Exp for i8{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
+    }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
     }
 }
 impl Exp for i16{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
     }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
+    }
 }
 impl Exp for i32{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
+    }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
     }
 }
 impl Exp for i64{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
     }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
+    }
 }
 impl Exp for i128{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
+    }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
     }
 }
 impl Exp for u8{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
     }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
+    }
 }
 impl Exp for u16{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
+    }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
     }
 }
 impl Exp for u32{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
     }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
+    }
 }
 impl Exp for u64{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
     }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
+    }
 }
 impl Exp for u128{
     fn exp(self)->Self {
         return pow(E, self as u128) as Self
+    }
+    fn cos(self)->Self {
+        (self as f64).cos().round() as Self
+    }
+    fn sin(self)->Self {
+        (self as f64).sin().round() as Self
     }
 }
 pub fn gcd<T:Ring+Div<Output = T>+Identity+Rem<Output = T>+PartialOrd>(a0:T, b0:T)->T{
@@ -231,4 +308,10 @@ pub fn pow<T:Ring>(v:T, count: u128)->T{
 
 pub fn exp<T:Exp>(v:T)->T{
     v.exp()
+}
+pub fn cos<T:Exp>(v:T)->T{
+    v.cos()
+}
+pub fn sin<T:Exp>(v:T)->T{
+    v.sin()
 }
