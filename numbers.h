@@ -91,8 +91,8 @@ template <const uint64_t N> class Zn{
     Zn(uint64_t in_value){
         value = in_value%N;
     }
-    Zn<N> operator -(){
-        (N-value)%N;
+    Zn<N> operator-()const noexcept{
+        return (N-value)%N;
     }
     Zn<N> operator -(Zn<N> other)const noexcept{
         return (value-other.value);
@@ -118,7 +118,29 @@ template <const uint64_t N> class Zn{
     bool operator >(Zn<N> other)const noexcept{
         return value %N > other.value %N; 
     }
-    bool operator >=(const Zn<N>& other)const noexcept =default;
-    bool operator <=(const Zn<N>& other)const noexcept =default;
+    bool operator >=(const Zn<N>& other)const noexcept{
+        return value >= other.value;
+    }
+    bool operator <=(const Zn<N>& other)const noexcept {
+        return value <= other.value;
+    }
     bool operator != (const Zn<N>& other) const noexcept=default;
+    bool operator +=(const Zn<N>& other)const noexcept{
+        *this = *this+other;
+    }
+    bool operator -=(const Zn<N>& other)const noexcept{
+        *this = *this-other;
+    }
+    bool operator *= (const Zn<N>& other) const noexcept{
+        *this = *this*other;
+    }
+    bool operator /= (const Zn<N>& other) const noexcept{
+        *this = *this/other;
+    }
+    bool operator %= (const Zn<N>& other) const noexcept{
+        *this = *this%other;
+    }
 };
+template<typename T> T suc(const T & prev){
+    return prev+1;
+}
