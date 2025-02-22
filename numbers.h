@@ -2,6 +2,7 @@
 #include <vector> 
 #include <functional>
 #include <iostream>
+#include <cstdint>
 #include <assert.h>
 template <typename T> T one(const T & value){
     (void)value;
@@ -117,19 +118,19 @@ template <const uint64_t N> class Zn{
         return value <= other.value;
     }
     bool operator != (const Zn<N>& other) const noexcept=default;
-    bool operator +=(const Zn<N>& other)const noexcept{
+    void operator +=(const Zn<N>& other)const noexcept{
         *this = *this+other;
     }
-    bool operator -=(const Zn<N>& other)const noexcept{
+    void operator -=(const Zn<N>& other)const noexcept{
         *this = *this-other;
     }
-    bool operator *= (const Zn<N>& other) const noexcept{
+    void operator *= (const Zn<N>& other) const noexcept{
         *this = *this*other;
     }
-    bool operator /= (const Zn<N>& other) const noexcept{
+    void operator /= (const Zn<N>& other) const noexcept{
         *this = *this/other;
     }
-    bool operator %= (const Zn<N>& other) const noexcept{
+    void operator %= (const Zn<N>& other) const noexcept{
         *this = *this%other;
     }
 };

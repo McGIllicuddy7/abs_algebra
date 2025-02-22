@@ -196,10 +196,10 @@ template <Ring T> class Poly{
     Poly<T> operator/(const Poly<T>& other) const noexcept{
         Poly<T> remainder = *this;
         std::vector<Term<T>> out;
-        auto old_degree = remainder.degree() +1;
+        //auto old_degree = remainder.degree() +1;
         int steps =0;
         while(remainder.degree()> other.degree()){
-            old_degree = remainder.degree();
+            //old_degree = remainder.degree();
             auto old_remainder = remainder;
             Term tmp = remainder.largest_term()/other.largest_term();
             remainder = remainder - other*tmp; 

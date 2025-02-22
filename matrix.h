@@ -392,3 +392,291 @@ impl <T:Ring+Identity> Identity for Matrix<T>{
     }
 }
     */
+#include <cstdlib>
+#include <vector>
+#include <assert.h>
+template<typename T> class Matrix{
+    std::vector<T> data;
+    size_t height;
+    size_t width;
+    public:
+    static Matrix<T> zeroed(size_t height, size_t width){
+        Matrix out;
+        out.height = height;
+        out.width = width;
+        for(size_t i = 0; i<height*width; i++){
+            out.push_back(zero<T>(0));
+        }
+        return out; 
+    }
+    static Matrix<T> identity(size_t height, size_t width){
+        Matrix out;
+        out.height = height;
+        out.width = width;
+        for(size_t i =0; i<height; i++){
+            for(size_t j =0; j<width;j++){
+                if(i == j){
+                    out.data.push_back(one<T>());
+                } else{
+                    out.data.push_back(zero<T>());
+                }
+            }
+        }
+        return out;
+    }
+    T& get(size_t x, size_t y){
+        return (*this)[y][x];
+    }
+    void set(size_t x, size_t y, T v){
+        (*this)[y][x] = v;
+    }
+    T *operator[](size_t index)const noexcept{
+        return &data[index*width];
+    }
+    void swap_rows(size_t r0, size_t r1) noexcept{
+        for(size_t i =0; i<width; i++){
+            auto tmp0 =get(i, r0);
+            auto tmp1 = get(i, r1);
+            set(i, r1, tmp0);
+            set(i, r0, tmp1);
+        }
+    }
+    void scale_row(size_t row, const T& scale) noexcept{
+        for(size_t i =0; i<width; i++){
+            (*this)[row][i] *= scale;
+        }
+    }
+    void sub_rows(size_t r0, size_t r1, const T& scale) noexcept{
+        for(size_t i =0; i<width; i++){
+            auto tmp0 = get(i, r0)*scale;
+            auto tmp1 = get(i, r1);
+            set(i, r1, tmp1-tmp0);
+        }
+    }
+    void add_rows(size_t r0, size_t r1, const T&scale)noexcept{
+        for(size_t i=0; i<width; i++){
+            auto tmp0 = get(i, r0)*scale;
+            auto tmp1 = get(i, r1);
+            set(i, r1, tmp1+tmp0);
+        } 
+    }
+    Matrix<T> operator+(const Matrix<T> & rhs) const noexcept{
+        assert(height == rhs.height);
+        assert(width == rhs.width);
+        std::vector<T> bx;
+        for(size_t i= 0;i< data.size; i++){
+           bx.push_back(data[i]+rhs.data[i]);
+        }
+        Matrix out; 
+        out.data = move(bx);
+        out.height = height;
+        out.width = width;
+        return out;
+    }
+    Matrix<T> operator += (const Matrix<T>&rhs) noexcept{
+        *this = *this+rhs; 
+    }
+    Matrix<T> operator-(const Matrix<T>&rhs)const noexcept{
+        assert(height == rhs.height);
+        assert(width == rhs.width);
+        std::vector<T> bx;
+        for(size_t i = 0;i< data.size; i++){
+           bx.push_back(data[i]-rhs.data[i]);
+        }
+        Matrix out; 
+        out.data = move(bx);
+        out.height = height;
+        out.width = width;
+        return out; 
+    }
+
+    Matrix<T> operator-=(const Matrix<T>&rhs)noexcept{
+        *this = *this-rhs;
+    }
+    Matrix<T> operator *(const Matrix<T> &rhs)const noexcept{
+        if(rhs.width == 1 && rhs.height == 1){
+            return *this * rhs.get(0, 0);
+        }
+        if(width == 1 && height == 1){
+            return rhs*get(0, 0);
+        }
+        assert(height== rhs.height);
+        auto out = Matrix<T>::zeroed(height, rhs.width);
+        for(size_t i =0; i<out.width; i++){
+            for (size_t j =0; j<out.height; j++){
+                for(size_t k =0; k<width; k++){
+                    out.data[j*out.width+i] += data[j*width+k]*rhs.data[k*rhs.width+i];
+                }
+            }
+        }
+        return out;
+    }  
+    static std::pair<Matrix<T>, Matrix<T>> pair_row_reduce(const Matrix<T>& source, const Matrix<T> & target){
+        Matrix<T> mtrx = source;
+        Matrix<T> out = target;
+        for(size_t i =0 ; i<mtrx.width; i++) {
+            auto r = i;
+            bool degen = false;
+            while(mtrx.get(i, r) == 0) {
+                r = r+1;
+                if(r >= mtrx.height){
+                    degen = true;
+                    break;
+                }
+            }
+            if (degen){
+                continue;
+            }
+            if(r != i){
+                out.swap_rows(r, i);
+                mtrx.swap_rows(r, i);
+            }
+            T v = mtrx.get(i, i);
+            mtrx.scale_row(i, one<T>()/v);
+            out.scale_row(i, one<T>()/v);
+            for(size_t j =0; j<mtrx.height; j++){
+                if(j == i){
+                    continue;
+                }
+                T mlt = mtrx.get(i, j);
+                mtrx.sub_rows(i, j, mlt.clone());
+                out.sub_rows(i, j, mlt.clone());
+            }
+        }
+        return std::pair(mtrx, out);
+    }
+    static Matrix<T> row_reduce(const Matrix<T>& matrix){
+        Matrix<T> mtrx = matrix;
+        for(size_t i =0; i<mtrx.width; i++) {
+            auto r = i;
+            bool degen = false;
+            while (mtrx.get(i, r) == zero<T>()){
+                r+=1;
+                if(r >= mtrx.height){
+                    degen = true;
+                    break;
+                }
+            }
+            if(degen){
+                continue;
+            }
+            if(r != i){
+                mtrx.swap_rows(r, i);
+            }
+            T v = mtrx.get(i, i);
+            mtrx.scale_row(i, one<T>()/v);
+            for (size_t j =0; j<mtrx.height; j++){
+                if(j == i){
+                    continue;
+                }
+                T mlt = mtrx.get(i, j);
+                mtrx.sub_rows(i, j, mlt);
+            }
+        }
+        return mtrx;
+    }
+    T determinant() const noexcept{
+        Matrix<T> mtrx = *this;
+        T out = one<T>();
+        for(size_t i =0; i<mtrx.width; i++){
+            size_t  r = i;
+            bool degen= false;
+            while (mtrx.get(i,r) ==  zero<T>()){
+                r = r+1;
+                if(r >= mtrx.height){
+                    degen = true;
+                    break;
+                }
+            }
+            if(degen){
+                return zero<T>();
+            }
+            if(r != i){
+                mtrx.swap_rows(r, i);
+                out *= (zero<T>()-one<T>());
+            }
+            T v = mtrx.get(i, i);
+            mtrx.scale_row(i, one<T>()/v);
+            out *= v;
+            for(size_t j= 0; j<mtrx.height; j++){
+                if (j == i){
+                    continue;
+                }
+                T mlt = mtrx.get(i, j);
+                if(mlt == zero<T>()){
+                    continue;
+                }
+                mtrx.sub_rows(i, j, mlt);
+            }
+        }
+        return out;
+    }
+    Matrix<T> to_upper_triangular() const noexcept{
+        Matrix<T> mtrx = *this;
+        for (size_t i =0; i<mtrx.width; i++) {
+            size_t r =i;
+            bool degen = false;
+            while(mtrx.get(i, r) == zero<T>()){
+                r = r+1;
+                if(r >= mtrx.height){
+                    degen = true;
+                    break;
+                }
+            }
+            if(degen){
+                continue;
+            }
+            if(r != i){
+                mtrx.swap_rows(r, i);
+            }
+            T v = mtrx.get(i, i);
+            mtrx.scale_row(i, one<T>()/v);
+            for(size_t j =0; j<mtrx.height; j++){
+                if (j == i){
+                    continue;
+                }
+                T mlt = mtrx.get(i, j);
+                mtrx.sub_rows(i, j, mlt);
+            }
+        }
+        for(size_t i =0; i<mtrx.width; i++){
+            size_t r = i;;
+            bool degen = false;
+            while(mtrx.get(i, r) == zero<T>()){
+                r = r+1;
+                if(r >= mtrx.height){
+                    degen = true;
+                    break;
+                }
+            }
+            if(degen){
+                continue;
+            }
+            if(r != i){
+                mtrx.swap_rows(r, i);
+            }
+            T v = mtrx.get(i, i);
+            mtrx.scale_row(i, one<T>()/v);
+            for(size_t j =0; j<mtrx.height; j++){
+                if(j == i){
+                    continue;
+                }
+                T mlt = mtrx.get(i, j);
+                mtrx.sub_rows(i, j, mlt);
+            }
+        }
+        return mtrx;
+    }
+     Matrix<T> inverse() const noexcept{
+        std::pair<Matrix<T>, Matrix<T>> out = Matrix::pair_row_reduce(*this, Matrix::identity(height, width));
+        return out.second();
+    }
+    std::vector<T> eigenvalues() const noexcept{
+        assert(height == width);
+        assert(false);
+    }
+    std::vector<Matrix<T>> eigenvectors()const noexcept{
+        assert(height == width);
+        assert(false);
+    }
+};

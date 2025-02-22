@@ -2,6 +2,7 @@
 #include <iostream>
 #include <assert.h>
 #include <cstdlib>
+#include "matrix.h"
 #include "q.h"
 #include "poly.h"
 using std::vector;
