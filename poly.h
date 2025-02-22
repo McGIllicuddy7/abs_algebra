@@ -250,7 +250,40 @@ template <Ring T> class Poly{
         }
         return 0;
     }
-    std::vector<Poly<T>> factorize()const noexcept{
+    Poly<T> derivitive_of()const noexcept{
+        std::vector<Term<T>> new_terms;
+        for(const auto &i: terms){
+            if (i.pow == 0){
+                continue;
+            }
+            else{
+                Term<T> t = i;
+                t.coef *= t.pow;
+                t.pow -=1;
+                new_terms.push_back(t);
+            }
+        }
+        return new_terms;
+    }
+    T operator()(const T &operand)const noexcept{
+        T out = zero(operand);
+        const auto power = [](const T & base, uint64_t power){
+            T out = one(base);
+            for(size_t i =0; i<power; i++){
+                out *= base;
+            }
+            return out;
+        };
+        for(const auto &i: terms){
+            out += i.coef*power(operand, i.pow);
+        }
+        return out;
+    }
+    operator std::function<T(const T&)>() const noexcept{
+        auto a = *this;
+        return [a](const T& value){return a(value);};
+    }
+    std::vector<Poly<T>> factorize_non_continous()const noexcept{
         if(degree() == 1){
             return {*this};
         }
@@ -287,6 +320,22 @@ template <Ring T> class Poly{
         std::vector<Poly<T>> terms = poly.factorize();
         terms.push_back(poly);
         return terms;
+    }
+    std::vector<Poly<T>> factorize() const noexcept{
+        if (this->degree() == 0){
+            return std::vector<Poly<T>>();
+        }
+        const auto root = find_root((std::function<T(const T&)>)(*this), (std::function<T(const T&)>)(this->derivitive_of()));
+        if (abs((*this)(root)) < epsilon(root)){
+            Poly<T> factor =Poly<T>(std::vector<T>{zero(root)-root, one(root)});
+            Poly<T> to_factor = (*this)/factor;
+            std::cout <<(std::string)to_factor<<"\n";
+            std::vector<Poly<T>> factors = to_factor.factorize();
+            factors.push_back(factor);
+            return factors;
+        } else{
+            return std::vector<Poly<T>>({*this});
+        }
     }
     operator std::string(){
         std::string out;

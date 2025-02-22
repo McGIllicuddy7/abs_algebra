@@ -7,20 +7,15 @@
 using std::vector;
 using std::string;
 int main(void){
-    constexpr int max = 16000;
     srand(time(0));
-    for(int i =0; i<10'000'000; i++){
-        vector<int> first_terms = {rand()%max+1, rand()%max+1, rand()%max+1};
-        vector<int> second_terms = {rand()%max+1, rand()%max+1};
-        Poly<int> p1 = first_terms;
-        Poly<int> p2 = second_terms;
-        Poly<int> p = p1*p2;
-        assert(p/p2 == p1);
-        assert(p/p1 == p2);
-        //std::cout<< "p1: "<<(string)p1 << " p2: "<<(string)p2 << " p: " << (string)p << " p/p1: "<<(string)(p/p1) << " p/p2: " << (string)(p/p2)<<"\n";
-        if (i%1000 ==0){
-            std::cout <<i<<"\n";
-        }
+   Poly<double> a = std::vector<double>({1.0, 3.0, -1.0});
+    std::cout << (string)a<<"\n";
+    Poly<double> a_pr= a.derivitive_of();
+    std::cout << (string)a_pr<<"\n";
+    double root = find_root((std::function<double(const double &)>)a, (std::function<double(const double &)>)a_pr);
+    std::cout << "root:"<<root <<"\n"<< "f(root)"<< a(root)<< "\n";
+    std::vector<Poly<double>> polys = a.factorize();
+    for(auto &p: polys){
+        std::cout <<(string)p <<"\n";
     }
 }
-
