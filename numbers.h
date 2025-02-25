@@ -2,6 +2,7 @@
 #include <vector> 
 #include <functional>
 #include <iostream>
+#include <unordered_set>
 #include <cstdint>
 #include <assert.h>
 template <typename T> T one(const T & value){
@@ -139,7 +140,11 @@ template<Ring T> T suc(const T & prev){
 }
 template<Ring T> T epsilon(const T & value){
     (void)value;
-    return 0.001;
+    return 0.0000001;
+}
+int epsilon(const int & value){
+    (void)value;
+    return 1;
 }
 template <typename T> T nderive(const std::function<T(const T&)> func, const T& value){
     T eps = epsilon(value);
@@ -157,12 +162,38 @@ template<typename T, typename...Args> T find_root(std::function<T(const T&)> fun
             return current;
         }
         T der = derivitive(current);
+        if(abs(der)<0.01){
+            der = 0.01;
+        }
+        std::cout <<current <<"\n";
         current = current - value/der;
-    }while(count <1000);
+    }while(count <100);
     return current;
 }
 template<typename T, typename...Args> T find_root(std::function<T(const T&)> func,Args...args){
     std::function<T(const T&)> der1 = func;
     std::function<T(const T&)> der = [der1](const T & x){return nderive(der1, x);};
     return find_root(func, der, args...);
+}
+
+inline std::vector<int64_t> factorize_integer(int64_t a){
+    std::vector<int64_t> out;
+    std::unordered_set<int64_t> ints;
+    int64_t count = sqrt(a)+1;
+    out.push_back(1);
+    ints.insert(1);
+    for(int64_t i = 1; i<count; i++){
+        if((a/i)*i == a){
+            if (!ints.contains(i)){
+                out.push_back(i);
+                ints.insert(i);
+            }
+            if(!ints.contains(a/i)){
+                out.push_back(a/i);
+                ints.insert(a/i);
+            }
+
+        }
+    }
+    return out;
 }

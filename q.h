@@ -12,6 +12,10 @@ class Q{
         denum = in_denum;
         *this = simplify();
     }
+    Q(int64_t it){
+        num = it;
+        denum = 1;
+    }
     Q inverse()const noexcept{
         Q out;
         out.denum = num;
@@ -56,6 +60,18 @@ class Q{
     Q operator /(const Q& rhs) const noexcept{
         return Q(num*rhs.denum, denum*rhs.num);
     }
+    void operator +=(const Q& rhs) noexcept{
+        *this = *this+rhs;
+    }
+    void operator-=(const Q& rhs) noexcept{
+        *this = *this+rhs;
+    } 
+    void operator*=(const Q& rhs)  noexcept{
+        *this = *this*rhs;
+    }
+void  operator /=(const Q& rhs) noexcept{
+       *this = *this/rhs;
+    }
     bool operator==(const Q& rhs) const noexcept{
         return num == rhs.num && denum == rhs.denum;
     }
@@ -79,4 +95,15 @@ class Q{
         auto p2 = rhs.num*denum;
         return p1>=p2;  
     }
+    operator int64_t()const noexcept{
+        return num/denum;
+    }
+    operator std::string()const noexcept{
+        std::string out = {};
+        out += num;
+        out += "/";
+        out += denum;
+        return out;
+    }
+    
 };

@@ -78,6 +78,10 @@ template <Ring T> class Poly{
     Poly() noexcept{
         
     }
+    Poly(T value){
+        Term<T> t = value;
+        terms.push_back(t);
+    }
     Poly(std::vector<Term<T>> inputs) noexcept{
         terms= inputs;
         collect_like();
@@ -265,10 +269,10 @@ template <Ring T> class Poly{
         }
         return new_terms;
     }
-    T operator()(const T &operand)const noexcept{
-        T out = zero(operand);
-        const auto power = [](const T & base, uint64_t power){
-            T out = one(base);
+    template<typename U> U operator()(const U &operand)const noexcept{
+        U out = zero(operand);
+        const auto power = [](const U & base, uint64_t power){
+            U out = one(base);
             for(size_t i =0; i<power; i++){
                 out *= base;
             }
@@ -325,18 +329,18 @@ template <Ring T> class Poly{
         if (this->degree() == 0){
             return std::vector<Poly<T>>();
         }
-        const auto root = find_root((std::function<T(const T&)>)(*this), (std::function<T(const T&)>)(this->derivitive_of()));
-        if (abs((*this)(root)) < epsilon(root)){
-            Poly<T> factor =Poly<T>(std::vector<T>{zero(root)-root, one(root)});
-            Poly<T> to_factor = (*this)/factor;
-            std::cout <<(std::string)to_factor<<"\n";
-            std::vector<Poly<T>> factors = to_factor.factorize();
-            factors.push_back(factor);
-            return factors;
-        } else{
-            return std::vector<Poly<T>>({*this});
+            const auto root = find_root((std::function<T(const T&)>)(*this), (std::function<T(const T&)>)(this->derivitive_of()));
+            if (abs((*this)(root)) < epsilon(root)){
+                Poly<T> factor =Poly<T>(std::vector<T>{zero(root)-root, one(root)});
+                Poly<T> to_factor = (*this)/factor;
+                std::cout <<(std::string)to_factor<<"\n";
+                std::vector<Poly<T>> factors = to_factor.factorize();
+                factors.push_back(factor);
+                return factors;
+            } else{
+                return std::vector<Poly<T>>({*this});
+            }
         }
-    }
     operator std::string(){
         std::string out;
         if (terms.size() == 1 && terms[0].coef == zero(terms[0].coef)){
