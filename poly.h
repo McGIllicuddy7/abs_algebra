@@ -81,6 +81,7 @@ template <Ring T> class Poly{
     Poly(T value){
         Term<T> t = value;
         terms.push_back(t);
+        collect_like();
     }
     Poly(std::vector<Term<T>> inputs) noexcept{
         terms= inputs;
@@ -202,25 +203,30 @@ template <Ring T> class Poly{
         std::vector<Term<T>> out;
         //auto old_degree = remainder.degree() +1;
         int steps =0;
-        while(remainder.degree()> other.degree()){
+        do{
             //old_degree = remainder.degree();
             auto old_remainder = remainder;
             Term tmp = remainder.largest_term()/other.largest_term();
+            if(tmp.pow>remainder.degree()){
+                break;
+            }
             remainder = remainder - other*tmp; 
            // std::cout <<"remainder:"<<(std::string)remainder<< " remainder largest: "<< (std::string)remainder.largest_term()<< " other*tmp: " << (std::string)(other*tmp)<<"\n";
             out.push_back(tmp);
-            if(other.degree()  == 0){
+            if(other.degree()  == 1){
                 break;
             }
             steps++;
             if (steps>1000){
                 break;
             }
-        }
-        return out;
+        }  while(remainder.degree()>other.degree());
+        Poly<T> vout =out;
+        return vout;
     }
     Poly<T> operator%(const Poly<T> & other)const noexcept{
         Poly<T> base = *this/other;
+
         return *this-base*other;
     }
     uint64_t degree()const noexcept{
@@ -237,7 +243,7 @@ template <Ring T> class Poly{
         out.coef = 0;
         out.pow =0;
         for(const auto &i: terms){
-            if(i.pow>out.pow && i.coef != 0){
+            if(i.pow>out.pow && i.coef != zero(i.coef)){
                 out = i;
             }
         }
@@ -341,26 +347,51 @@ template <Ring T> class Poly{
                 return std::vector<Poly<T>>({*this});
             }
         }
-    operator std::string(){
+    operator std::string()const noexcept{
         std::string out;
         if (terms.size() == 1 && terms[0].coef == zero(terms[0].coef)){
             return "0";
         }
+        bool has_hit = false;
         for(size_t i =0; i<terms.size(); i++){
-            if (terms[i].coef == zero(terms[i].coef)&& terms.size() != 1){
+            std::string tmp = (std::string)(terms[i].coef);
+            if(terms[i].coef == zero(terms[i].coef)){
                 continue;
             }
-            std::string tmp = terms[i];
-            if (i != 0){
+            if (has_hit){
                 if(tmp[0] == '-'){
-                    out += tmp;
+                    if (tmp == "-1"&& terms[i].pow != 0){
+                        out += "-";
+                    } else{
+                        out += tmp;
+                    }
+
                 } else{
                     out += "+";
-                    out += tmp;
+                    if (terms[i].pow != 0 && tmp == "1"){
+
+                    } else{
+                        out += tmp;
+                    }
+    
                 }
             } else{
-                out += tmp;
+                if (tmp == "1" && terms[i].pow != 0){
+
+                } else{
+                    out += tmp;
+                }
             }
+            if (terms[i].pow != 0){
+                out += "x";
+            }
+            if(terms[i].pow>1){
+                out += "^";
+                std::stringstream t;
+                t<< terms[i].pow;
+                out += t.str();
+            }
+            has_hit = true;
         }
         if(out == ""){
             out = "0";
@@ -368,3 +399,8 @@ template <Ring T> class Poly{
         return out;
     }
 };
+template<typename T> std::ostream& operator<<(std::ostream& os, const Poly<T> & obj)
+{
+    os << (std::string)obj;
+    return os;
+}

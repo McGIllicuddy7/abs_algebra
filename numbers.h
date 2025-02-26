@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <cstdint>
 #include <assert.h>
+#include <sstream>
 template <typename T> T one(const T & value){
     (void)value;
     return 1;
@@ -76,8 +77,13 @@ template <const uint64_t N> class Zn{
     static_assert(N>0);
     public:
     uint64_t value;
-    operator uint64_t (){
+    operator uint64_t ()const noexcept{
         return value;
+    }
+    operator std::string()const noexcept{
+        std::stringstream ss;
+        ss << value;
+        return ss.str();
     }
     Zn(){
 
@@ -135,6 +141,10 @@ template <const uint64_t N> class Zn{
         *this = *this%other;
     }
 };
+template<const uint64_t N > std::ostream& operator<<(std::ostream& os, const Zn<N>& obj)
+{
+    os << obj.value;
+}
 template<Ring T> T suc(const T & prev){
     return prev+1;
 }
